@@ -1,92 +1,41 @@
 class Game
 
-  def initialize
+  def initialize(win_checker)
     @board = [ [nil, nil, nil], 
                [nil, nil, nil], 
                [nil, nil, nil] ]
     @pieces = [:o, :x]
     @turn = 0
+    @win_checker = win_checker
+    @noughts_win_count = 0
+    @crosses_win_count = 0
     display_board()
+    display_turn()
   end
+
+  ################ INTERACTIVE ################
 
   def turn(row, column)
-    place_piece(row, column)
-    display_board()
-    check_for_win()
-    increment_turn()
-  end
-
-  def current_piece
-    @pieces[@turn % 2]
-  end
-
-
-  ############# CHECK FOR WIN #############
-
-  def check_for_win
-    if has_won?(current_piece()) 
-      display_winner(current_piece())
-    elsif board_full?
-      puts "Draw"
-      reset()
+    if place_piece(row, column)
+      display_board()
+      check_for_win()
     end
   end
 
-  def display_winner(symbol)
-    puts "Winner is #{symbol}"
-  end
-
-  def has_won?(symbol)
-    horizontal_line?(symbol) ||
-    vertical_line?(symbol) ||
-    diagonal_line?(symbol)
-  end
-
-  def horizontal_line?(symbol)
-    @board.any? do |row|
-      row_has_winning_line?(row, symbol)
-    end
-  end
-
-  def row_has_winning_line?(row, symbol)
-    row.all? do |square|
-      square == symbol
-    end
-  end
-
-  def vertical_line?(symbol)
-    @board.transpose.any? do |row|
-      row_has_winning_line?(row, symbol)
-    end
-  end
-
-  def diagonal_line?(symbol)
-    middle_piece = @board[1][1]
-    return false if middle_piece != symbol
-    top_left_and_bottom_right = @board[0][0] == symbol && @board[2][2] == symbol
-    top_right_and_bottom_left = @board[0][2] == symbol && @board[2][0] == symbol
-    top_left_and_bottom_right || top_right_and_bottom_left
-  end
-
-
-  ############################
-
-
+  ################ METHODS ################
 
   def place_piece(row, column)
     if out_of_range?(row, column)
-      "Space not valid."
+      puts "Space not valid."
+      replay_turn()
       return false
     end
     if space_filled?(row, column)
-      "Space already filled."
+      puts "Space already filled."
+      replay_turn()
       return false
     end
     @board[row][column] = current_piece()
-  end
-
-  def increment_turn
-    @turn += 1
   end
 
   def display_board
@@ -96,6 +45,21 @@ class Game
     puts row_strings.join("\n_ _ _\n")
   end
 
+  def check_for_win
+    if @win_checker.has_won?(current_piece(), @board) 
+      puts "Winner is #{current_piece()}"
+      increment_win_count(current_piece())
+      display_score()
+      reset()
+    elsif board_full?
+      puts "Draw"
+      reset()
+    else
+      increment_turn()
+      display_turn()
+    end
+  end
+
   def reset
     @board = [ [nil, nil, nil], [nil, nil, nil], [nil, nil, nil] ]
     @turn = 0
@@ -103,7 +67,11 @@ class Game
     display_board()
   end
 
+  def current_piece
+    @pieces[@turn % 2]
+  end
 
+  ################ PRIVATE METHODS ################
 
   private
 
@@ -126,8 +94,38 @@ class Game
       row_symbols.join("|")
     end
 
+    def increment_turn
+      @turn += 1
+    end
 
-    ############ REDUNDANT ################
+    def increment_win_count(symbol)
+      case symbol
+      when :o
+        @noughts_win_count += 1
+      when :x
+        @crosses_win_count += 1
+      end
+    end
+
+    def display_score
+      puts "Noughts: #{@noughts_win_count} Crosses: #{@crosses_win_count}"
+    end
+
+    def display_turn
+      case current_piece()
+      when :o
+        puts "Nought's turn:"
+      when :x
+        puts "Cross's turn:"
+      end
+    end
+
+    def replay_turn
+      display_board()
+      display_turn()
+    end
+
+  ################ REDUNDANT ################
 
     # def turn(row, column)
     #   place_piece(row, column)

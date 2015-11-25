@@ -1,8 +1,12 @@
 require "pry-byebug"
 require_relative "game"
+require_relative "win_checker"
+require_relative "flatten_win_checker"
 
 # Create game
-game = Game.new()
+win_checker = WinChecker.new()
+flatten_win_checker = FlattenWinChecker.new()
+game = Game.new(flatten_win_checker)
 
 # Place piece
 # game.place_piece(0,0)
