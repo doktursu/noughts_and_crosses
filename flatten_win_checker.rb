@@ -25,7 +25,7 @@ class FlattenWinChecker
 
   def winning_line?(symbol, indices)
     WINNING_LINES.each do |line|
-      return true if (indices & line).length == 3
+      return true if indices & line == line
     end
     return false
   end
